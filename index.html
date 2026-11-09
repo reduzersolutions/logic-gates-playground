@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Logic Gates Playground</title>
+<meta name="description" content="Reduzer School: toggle the inputs of AND, OR, NOT, NAND, NOR, XOR and XNOR gates, build a half adder, and solve the mystery gate.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --red:#FF002E; --bg:#FFFFFF; --panel:#F4F4F5; --ink:#0A0A0A; --muted:#5B5B63; --line:#D4D4D8;
+  --off:#A1A1AA; --card:#FFFFFF; --rowhi:#FFE5EA; --onText:#FFFFFF;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0A0A0A; --panel:#18181B; --ink:#F4F4F5; --muted:#A1A1AA; --line:#3F3F46;
+    --off:#52525B; --card:#111113; --rowhi:#3A0711;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0A0A0A; --panel:#18181B; --ink:#F4F4F5; --muted:#A1A1AA; --line:#3F3F46;
+  --off:#52525B; --card:#111113; --rowhi:#3A0711;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 16px 48px}
+header{display:flex;align-items:center;gap:16px;border-left:8px solid var(--red);padding:4px 0 4px 16px;margin-bottom:20px}
+header h1{font-size:clamp(24px,4vw,36px);margin:0;font-weight:800;letter-spacing:-.5px}
+header p{margin:4px 0 0;color:var(--muted);font-size:15px}
+.kicker{font-size:12px;font-weight:700;letter-spacing:3px;color:var(--red);text-transform:uppercase}
+nav{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+nav button{font:600 15px Inter,sans-serif;padding:10px 16px;border-radius:999px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+nav button.active{background:var(--red);border-color:var(--red);color:#fff}
+nav .sep{width:1px;background:var(--line);margin:0 4px}
+.stage{background:var(--panel);border-radius:20px;padding:24px;display:grid;grid-template-columns:1fr;gap:20px}
+.rule{font-size:clamp(18px,2.6vw,26px);font-weight:600;margin:0}
+.rule .hl{color:var(--red)}
+.board{display:flex;align-items:center;gap:12px;justify-content:center;flex-wrap:wrap}
+.inputs{display:flex;flex-direction:column;gap:14px}
+.tog{display:flex;align-items:center;gap:10px;font:700 18px Inter;color:var(--muted)}
+.tog button{width:84px;height:56px;border-radius:14px;border:2px solid var(--line);background:var(--card);font:700 28px "JetBrains Mono",monospace;color:var(--off);cursor:pointer;transition:all .15s}
+.tog button.on{background:var(--red);border-color:var(--red);color:#fff}
+svg.gate{width:min(520px,100%);height:auto}
+.bulbwrap{display:flex;flex-direction:column;align-items:center;gap:6px;font:700 18px Inter;color:var(--muted)}
+.bulb{width:96px;height:96px;border-radius:50%;display:grid;place-items:center;font:700 36px "JetBrains Mono",monospace;border:3px solid var(--line);background:var(--card);color:var(--off);transition:all .2s}
+.bulb.on{background:var(--red);border-color:var(--red);color:#fff;box-shadow:0 0 0 10px rgba(255,0,46,.18),0 0 40px rgba(255,0,46,.55)}
+.bulbs{display:flex;gap:24px}
+table{border-collapse:collapse;font-family:"JetBrains Mono",monospace;font-size:20px;margin:0 auto;background:var(--card);border-radius:12px;overflow:hidden}
+th,td{padding:8px 22px;text-align:center;border-bottom:1px solid var(--line)}
+th{font-family:Inter;font-size:14px;letter-spacing:2px;color:var(--muted);font-weight:700}
+tr.cur td{background:var(--rowhi);font-weight:700}
+td.one{color:var(--red);font-weight:700}
+.note{color:var(--muted);font-size:15px;text-align:center;margin:0}
+.sum{font-size:clamp(20px,3vw,30px);text-align:center;font-weight:600;margin:0}
+.sum code{font-family:"JetBrains Mono",monospace;color:var(--red)}
+.guess{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.guess button{font:600 16px Inter;padding:10px 18px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+.guess button.right{background:#16A34A;border-color:#16A34A;color:#fff}
+.guess button.wrong{opacity:.4;text-decoration:line-through}
+.fb{min-height:28px;text-align:center;font-weight:600;margin:0}
+.actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.actions button{font:600 15px Inter;padding:10px 16px;border-radius:12px;border:none;background:var(--ink);color:var(--bg);cursor:pointer}
+footer{margin-top:20px;color:var(--muted);font-size:14px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+footer a{color:var(--red);font-weight:600;text-decoration:none}
+body.bare header,body.bare nav,body.bare footer,body.bare .note{display:none}
+body.bare .wrap{padding:16px}
+@media (max-width:640px){.tog button{width:64px;height:48px;font-size:22px}.bulb{width:72px;height:72px;font-size:28px}th,td{padding:6px 12px;font-size:16px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="kicker">Reduzer School · Open webinar</div>
+      <h1>Logic Gates Playground</h1>
+      <p>Click the inputs to flip them between 0 (off) and 1 (on). Watch the output and the truth table.</p>
+    </div>
+  </header>
+  <nav id="nav"></nav>
+  <main class="stage" id="stage" aria-live="polite"></main>
+  <footer><span>Inputs and outputs are bits: 1 = on, 0 = off.</span><span>Learn to build software: <a href="https://reduzer.ac.ke" target="_blank" rel="noopener">reduzer.ac.ke</a></span></footer>
+</div>
+
+<script>
+(function(){
+const P = new URLSearchParams(location.search);
+if (P.get('theme')) document.documentElement.setAttribute('data-theme', P.get('theme'));
+if (P.get('bare')) document.body.classList.add('bare');
+
+const GATES = {
+  and:  {name:'AND',  n:2, f:(a,b)=>a&b,      rule:'output is <span class="hl">1 only when A AND B are both 1</span>.'},
+  or:   {name:'OR',   n:2, f:(a,b)=>a|b,      rule:'output is <span class="hl">1 when A OR B (or both) is 1</span>.'},
+  not:  {name:'NOT',  n:1, f:(a)=>a?0:1,      rule:'output is <span class="hl">the opposite</span> of the input.'},
+  nand: {name:'NAND', n:2, f:(a,b)=>(a&b)?0:1,rule:'output is <span class="hl">0 only when both inputs are 1</span> (NOT AND).'},
+  nor:  {name:'NOR',  n:2, f:(a,b)=>(a|b)?0:1,rule:'output is <span class="hl">1 only when both inputs are 0</span> (NOT OR).'},
+  xor:  {name:'XOR',  n:2, f:(a,b)=>a^b,      rule:'output is <span class="hl">1 when the inputs are different</span> (exclusive OR).'},
+  xnor: {name:'XNOR', n:2, f:(a,b)=>(a^b)?0:1,rule:'output is <span class="hl">1 when the inputs are the same</span> (exclusive NOR).'}
+};
+const ORDER = ['and','or','not','nand','nor','xor','xnor'];
+let mode = (P.get('gate')||'and').toLowerCase();
+if (!GATES[mode] && !['adder','mystery'].includes(mode)) mode = 'and';
+let A = +(P.get('a')||0) ? 1 : 0, B = +(P.get('b')||0) ? 1 : 0, demoTimer = null, mystery = null, solved = false;
+
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const col = on => on ? css('--red') : css('--off');
+
+// Gate bodies drawn in a 400x200 box; inputs enter on the left, output leaves at (outX,100)
+function body(t){
+  const ink = css('--ink'), card = css('--card');
+  const st = `fill="${card}" stroke="${ink}" stroke-width="6" stroke-linejoin="round"`;
+  const andP = 'M120 40 H200 A60 60 0 0 1 200 160 H120 Z';
+  const orP  = 'M110 40 Q160 100 110 160 Q215 160 270 100 Q215 40 110 40 Z';
+  const bub  = cx => `<circle cx="${cx}" cy="100" r="11" ${st}/>`;
+  switch(t){
+    case 'and':  return {svg:`<path d="${andP}" ${st}/>`, inX:120, outX:260};
+    case 'nand': return {svg:`<path d="${andP}" ${st}/>${bub(271)}`, inX:120, outX:282};
+    case 'or':   return {svg:`<path d="${orP}" ${st}/>`, inX:132, outX:270};
+    case 'nor':  return {svg:`<path d="${orP}" ${st}/>${bub(281)}`, inX:132, outX:292};
+    case 'xor':  return {svg:`<path d="M92 40 Q142 100 92 160" fill="none" stroke="${ink}" stroke-width="6"/><path d="${orP}" ${st}/>`, inX:132, outX:270};
+    case 'xnor': return {svg:`<path d="M92 40 Q142 100 92 160" fill="none" stroke="${ink}" stroke-width="6"/><path d="${orP}" ${st}/>${bub(281)}`, inX:132, outX:292};
+    case 'not':  return {svg:`<path d="M130 45 L130 155 L240 100 Z" ${st}/>${bub(251)}`, inX:130, outX:262};
+    case 'mystery': return {svg:`<rect x="120" y="40" width="140" height="120" rx="14" fill="${css('--red')}"/><text x="190" y="128" text-anchor="middle" font-family="Inter, sans-serif" font-weight="800" font-size="76" fill="#fff">?</text>`, inX:120, outX:260};
+  }
+}
+
+function gateSVG(t, n, a, b, out, label){
+  const g = body(t), w = 8;
+  const ys = n===1 ? [100] : [70,130];
+  const vals = n===1 ? [a] : [a,b];
+  let wires = ys.map((y,i)=>`<line x1="20" y1="${y}" x2="${g.inX+4}" y2="${y}" stroke="${col(vals[i])}" stroke-width="${w}" stroke-linecap="round"/>
+    <text x="20" y="${y-14}" font-family="JetBrains Mono, monospace" font-weight="700" font-size="22" fill="${col(vals[i])}">${n===1?'A':'AB'[i]}=${vals[i]}</text>`).join('');
+  wires += `<line x1="${g.outX}" y1="100" x2="385" y2="100" stroke="${col(out)}" stroke-width="${w}" stroke-linecap="round"/>
+    <text x="385" y="86" text-anchor="end" font-family="JetBrains Mono, monospace" font-weight="700" font-size="22" fill="${col(out)}">Out=${out}</text>`;
+  const lab = label ? `<text x="190" y="190" text-anchor="middle" font-family="Inter, sans-serif" font-weight="800" font-size="22" fill="${css('--muted')}" letter-spacing="3">${label}</text>` : '';
+  return `<svg class="gate" viewBox="0 0 400 200" role="img" aria-label="${label||t} gate, output ${out}">${wires}${g.svg}${lab}</svg>`;
+}
+
+function toggles(n){
+  const mk = (k,v)=>`<div class="tog">${k}<button data-k="${k}" class="${v?'on':''}" aria-pressed="${!!v}" aria-label="Input ${k} is ${v}">${v}</button></div>`;
+  return `<div class="inputs">${mk('A',A)}${n===2?mk('B',B):''}</div>`;
+}
+
+function truth(fn, n, cols){
+  const rows = n===1 ? [[0],[1]] : [[0,0],[0,1],[1,0],[1,1]];
+  const head = (n===1?['A']:['A','B']).concat(cols).map(h=>`<th>${h}</th>`).join('');
+  const body = rows.map(r=>{
+    const outs = [].concat(fn(...r));
+    const cur = (n===1 ? r[0]===A : (r[0]===A && r[1]===B)) ? 'cur' : '';
+    return `<tr class="${cur}">${r.concat(outs).map((v,i)=>`<td class="${i>=n && v===1?'one':''}">${v}</td>`).join('')}</tr>`;
+  }).join('');
+  return `<table aria-label="Truth table"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+}
+
+function renderNav(){
+  const btn = (k,l)=>`<button data-m="${k}" class="${mode===k?'active':''}">${l}</button>`;
+  document.getElementById('nav').innerHTML = ORDER.map(k=>btn(k,GATES[k].name)).join('') + '<span class="sep"></span>' + btn('adder','Half adder') + btn('mystery','Mystery gate');
+}
+
+const HIDE = !!P.get('hide');
+function renderGate(){
+  const G = GATES[mode], realOut = G.n===1 ? G.f(A) : G.f(A,B);
+  if (HIDE){
+    const svg = gateSVG(mode,G.n,A,B,0,G.name).replace('Out=0','Out=?');
+    return `<p class="rule">${G.name}: what comes out?</p>
+    <div class="board">${toggles(G.n)}${svg}<div class="bulbwrap"><div class="bulb">?</div>Output</div></div>`;
+  }
+  const out = realOut;
+  return `<p class="rule">${G.name}: ${G.rule}</p>
+  <div class="board">${toggles(G.n)}${gateSVG(mode,G.n,A,B,out,G.name)}<div class="bulbwrap"><div class="bulb ${out?'on':''}">${out}</div>Output</div></div>
+  ${truth(G.f, G.n, ['OUT'])}
+  <p class="note">The highlighted row is what the circuit is doing right now.</p>`;
+}
+
+function renderAdder(){
+  const s = A^B, c = A&B, ink = css('--ink');
+  const sc = `transform="translate(300,10) scale(.8)"`, cc = `transform="translate(300,190) scale(.8)"`;
+  const x = body('xor'), an = body('and');
+  // wire geometry: gate local inputs at y 70/130 => global (scale .8): top gate y 66/114, bottom gate y 246/294
+  const ax = 300 + x.inX*.8 + 3, bx = 300 + an.inX*.8 + 3;
+  const W = (pts,v)=>`<polyline points="${pts}" fill="none" stroke="${col(v)}" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>`;
+  const dot = (x,y,v)=>`<circle cx="${x}" cy="${y}" r="8" fill="${col(v)}"/>`;
+  const svg = `<svg class="gate" style="width:min(760px,100%)" viewBox="0 0 760 380" role="img" aria-label="Half adder: XOR gives sum ${s}, AND gives carry ${c}">
+    <text x="20" y="56" font-family="JetBrains Mono, monospace" font-weight="700" font-size="24" fill="${col(A)}">A=${A}</text>
+    <text x="20" y="148" font-family="JetBrains Mono, monospace" font-weight="700" font-size="24" fill="${col(B)}">B=${B}</text>
+    ${W(`20,66 ${ax},66`,A)} ${W(`180,66 180,246 ${bx},246`,A)} ${dot(180,66,A)}
+    ${W(`20,158 230,158 230,114 ${ax},114`,B)} ${W(`230,158 230,294 ${bx},294`,B)} ${dot(230,158,B)}
+    ${W(`${300+x.outX*.8},90 720,90`,s)} ${W(`${300+an.outX*.8},270 720,270`,c)}
+    <g ${sc}>${x.svg}</g><g ${cc}>${an.svg}</g>
+    <text x="452" y="168" text-anchor="middle" font-family="Inter, sans-serif" font-weight="800" font-size="20" fill="${css('--muted')}" letter-spacing="3">XOR</text>
+    <text x="452" y="348" text-anchor="middle" font-family="Inter, sans-serif" font-weight="800" font-size="20" fill="${css('--muted')}" letter-spacing="3">AND</text>
+    <text x="720" y="74" text-anchor="end" font-family="JetBrains Mono, monospace" font-weight="700" font-size="24" fill="${col(s)}">SUM=${s}</text>
+    <text x="720" y="254" text-anchor="end" font-family="JetBrains Mono, monospace" font-weight="700" font-size="24" fill="${col(c)}">CARRY=${c}</text>
+  </svg>`;
+  return `<p class="rule">Half adder: add two bits. <span class="hl">Sum = A XOR B</span>, <span class="hl">Carry = A AND B</span>.</p>
+  <div class="board">${toggles(2)}${svg}</div>
+  <div class="board"><div class="bulbs"><div class="bulbwrap"><div class="bulb ${c?'on':''}">${c}</div>Carry</div><div class="bulbwrap"><div class="bulb ${s?'on':''}">${s}</div>Sum</div></div></div>
+  <p class="sum">${A} + ${B} = <code>${c}${s}</code> in binary = <b>${A+B}</b></p>
+  ${truth((a,b)=>[a&b,a^b],2,['CARRY','SUM'])}`;
+}
+
+function newMystery(){
+  const pool = ['and','or','nand','nor','xor','xnor'];
+  let k; do { k = pool[Math.floor(Math.random()*pool.length)]; } while (k===mystery);
+  mystery = k; solved = false; A = 0; B = 0;
+}
+function renderMystery(){
+  if (!mystery) newMystery();
+  const G = GATES[mystery], out = G.f(A,B);
+  return `<p class="rule">Mystery gate: flip the inputs, watch the output, then <span class="hl">name the gate</span>.</p>
+  <div class="board">${toggles(2)}${gateSVG('mystery',2,A,B,out,'')}<div class="bulbwrap"><div class="bulb ${out?'on':''}">${out}</div>Output</div></div>
+  <div class="guess">${['and','or','nand','nor','xor','xnor'].map(k=>`<button data-g="${k}">${GATES[k].name}</button>`).join('')}</div>
+  <p class="fb" id="fb">${solved?'Correct. It was '+G.name+'.':'Tip: try all four input combinations before you guess.'}</p>
+  <div class="actions"><button id="again">New mystery gate</button></div>`;
+}
+
+function render(){
+  renderNav();
+  const st = document.getElementById('stage');
+  st.innerHTML = mode==='adder' ? renderAdder() : mode==='mystery' ? renderMystery() : renderGate();
+}
+
+document.addEventListener('click', e=>{
+  const t = e.target.closest('button'); if (!t) return;
+  if (t.dataset.m){ mode = t.dataset.m; A = 0; B = 0; if (mode==='mystery') newMystery(); stopDemo(); render(); return; }
+  if (t.dataset.k){ if (t.dataset.k==='A') A ^= 1; else B ^= 1; stopDemo(); render(); return; }
+  if (t.dataset.g){
+    if (t.dataset.g===mystery){ solved = true; render(); }
+    else { t.classList.add('wrong'); document.getElementById('fb').textContent = 'Not that one. Check a row where the two gates differ.'; }
+    return;
+  }
+  if (t.id==='again'){ newMystery(); render(); }
+});
+
+// Demo mode (?demo=1): steps through every input row, used to record the slide GIFs
+function stopDemo(){ if (demoTimer){ clearInterval(demoTimer); demoTimer = null; } }
+if (P.get('demo')){
+  const one = mode==='not';
+  const seq = one ? [[0,0],[1,0]] : [[0,0],[0,1],[1,0],[1,1]];
+  let i = 0; [A,B] = seq[0];
+  demoTimer = setInterval(()=>{ i = (i+1)%seq.length; [A,B] = seq[i]; render(); }, +(P.get('ms')||1600));
+}
+render();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', render);
+})();
+</script>
+</body>
+</html>
