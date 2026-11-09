@@ -54,6 +54,7 @@ td.one{color:var(--red);font-weight:700}
 .note{color:var(--muted);font-size:15px;text-align:center;margin:0}
 .sum{font-size:clamp(20px,3vw,30px);text-align:center;font-weight:600;margin:0}
 .sum code{font-family:"JetBrains Mono",monospace;color:var(--red)}
+.sum .dec{color:var(--muted);font-weight:400;font-size:.7em}
 .guess{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
 .guess button{font:600 16px Inter;padding:10px 18px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
 .guess button.right{background:#16A34A;border-color:#16A34A;color:#fff}
@@ -195,7 +196,7 @@ function renderAdder(){
   return `<p class="rule">Half adder: add two bits. <span class="hl">Sum = A XOR B</span>, <span class="hl">Carry = A AND B</span>.</p>
   <div class="board">${toggles(2)}${svg}</div>
   <div class="board"><div class="bulbs"><div class="bulbwrap"><div class="bulb ${c?'on':''}">${c}</div>Carry</div><div class="bulbwrap"><div class="bulb ${s?'on':''}">${s}</div>Sum</div></div></div>
-  <p class="sum">${A} + ${B} = <code>${c}${s}</code> in binary = <b>${A+B}</b></p>
+  <p class="sum">${A} + ${B} = <code>${c}${s}</code> in binary = <b>${A+B}</b> in decimal <span class="dec">(everyday numbers)</span></p>
   ${truth((a,b)=>[a&b,a^b],2,['CARRY','SUM'])}`;
 }
 
