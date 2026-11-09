@@ -101,7 +101,7 @@ const GATES = {
 const ORDER = ['and','or','not','nand','nor','xor','xnor'];
 let mode = (P.get('gate')||'and').toLowerCase();
 if (!GATES[mode] && !['adder','mystery'].includes(mode)) mode = 'and';
-let A = +(P.get('a')||0) ? 1 : 0, B = +(P.get('b')||0) ? 1 : 0, demoTimer = null, mystery = null, solved = false;
+let A = +(P.get('a')||0) ? 1 : 0, B = +(P.get('b')||0) ? 1 : 0, demoTimer = null, mystery = null, solved = false, wrong = new Set();
 
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const col = on => on ? css('--red') : css('--off');
@@ -203,14 +203,14 @@ function renderAdder(){
 function newMystery(){
   const pool = ['and','or','nand','nor','xor','xnor'];
   let k; do { k = pool[Math.floor(Math.random()*pool.length)]; } while (k===mystery);
-  mystery = k; solved = false; A = 0; B = 0;
+  mystery = k; solved = false; wrong.clear(); A = 0; B = 0;
 }
 function renderMystery(){
   if (!mystery) newMystery();
   const G = GATES[mystery], out = G.f(A,B);
   return `<p class="rule">Mystery gate: flip the inputs, watch the output, then <span class="hl">name the gate</span>.</p>
   <div class="board">${toggles(2)}${gateSVG('mystery',2,A,B,out,'')}<div class="bulbwrap"><div class="bulb ${out?'on':''}">${out}</div>Output</div></div>
-  <div class="guess">${['and','or','nand','nor','xor','xnor'].map(k=>`<button data-g="${k}">${GATES[k].name}</button>`).join('')}</div>
+  <div class="guess">${['and','or','nand','nor','xor','xnor'].map(k=>`<button data-g="${k}" class="${solved&&k===mystery?'right':wrong.has(k)?'wrong':''}">${GATES[k].name}</button>`).join('')}</div>
   <p class="fb" id="fb">${solved?'Correct. It was '+G.name+'.':'Tip: try all four input combinations before you guess.'}</p>
   <div class="actions"><button id="again">New mystery gate</button></div>`;
 }
@@ -226,8 +226,9 @@ document.addEventListener('click', e=>{
   if (t.dataset.m){ mode = t.dataset.m; A = 0; B = 0; if (mode==='mystery') newMystery(); stopDemo(); render(); return; }
   if (t.dataset.k){ if (t.dataset.k==='A') A ^= 1; else B ^= 1; stopDemo(); render(); return; }
   if (t.dataset.g){
+    if (solved) return;
     if (t.dataset.g===mystery){ solved = true; render(); }
-    else { t.classList.add('wrong'); document.getElementById('fb').textContent = 'Not that one. Check a row where the two gates differ.'; }
+    else { wrong.add(t.dataset.g); t.classList.add('wrong'); document.getElementById('fb').textContent = 'Not that one. Check a row where the two gates differ.'; }
     return;
   }
   if (t.id==='again'){ newMystery(); render(); }
